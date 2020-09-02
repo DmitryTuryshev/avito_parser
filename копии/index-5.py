@@ -16,7 +16,7 @@ HEADERS={'User-Agent': UserAgent().chrome}
 HOST='https://www.avito.ru'
 FILE='price.csv'
 Month= {'января':1,'февраля':2,'марта':3,'апреля':4,'мая':5,'июня':6,'июля':7,'августа':8,'сентября':9,'октября':10,'ноября':11,'декабря':12}
-TYPES_OF_HOME=['квартира','cтудия', 'дом','коттедж','дача','студия','своб. планировка']
+TYPES_OF_HOME=['квартира','cтудия', 'дом','коттедж','дача']
 flag_break_from_url=False
 DISTRICT={'Архара':'Архаринский',
           'Белогорск':'Белогорский',
@@ -385,7 +385,7 @@ def parse(category):
             line = filling_empty_features(line)
             if check_from_writer(line):
                 print('Чекнулась')
-                # writer_str_csv(line,'new_data.csv','a')
+                writer_str_csv(line,'new_data.csv','a')
             time.sleep(1)
     else:
         print('Не удалось получить html')

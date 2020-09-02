@@ -392,8 +392,6 @@ def parse(category):
 
 if __name__ == "__main__":
     while True:
-
-
         for category in ALL_NEED_URL_FROM_CATEGORY.keys():
             print(category.upper())
             parse(category)

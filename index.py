@@ -4,15 +4,24 @@ from bs4 import BeautifulSoup
 import time
 from datetime import datetime
 from fake_useragent import UserAgent
+import pymysql
 
-
+connection = pymysql.connect(
+    host="localhost",
+    user="vladimir",
+    password="_Lbvf_82461973",
+    db="avito_db",
+    database="avito_db",
+    port=3306
+)
 ALL_NEED_URL_FROM_CATEGORY={
     'аренда квартир':'https://www.avito.ru/amurskaya_oblast/kvartiry/sdam-ASgBAgICAUSSA8gQ?cd=1',
-    'аренда домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/sdam-ASgBAgICAUSUA9IQ',
     'продажа квартир':'https://www.avito.ru/amurskaya_oblast/kvartiry/prodam-ASgBAgICAUSSA8YQ?cd=1',
+    'аренда домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/sdam-ASgBAgICAUSUA9IQ',
     'продажа домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/prodam-ASgBAgICAUSUA9AQ?cd=1'
 }
-HEADERS={'User-Agent': UserAgent().chrome}
+HEADERS = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0', 'accept': '*/*'}
+
 HOST='https://www.avito.ru'
 FILE='price.csv'
 Month= {'января':1,'февраля':2,'марта':3,'апреля':4,'мая':5,'июня':6,'июля':7,'августа':8,'сентября':9,'октября':10,'ноября':11,'декабря':12}
@@ -43,6 +52,11 @@ DISTRICT={'Архара':'Архаринский',
           'Прогресс':'г.о. Прогресс',
           'Бурея': 'Бурейский'
           }
+# district_read_from_db={}
+# lacality_read_from_db={}
+# property_read_from_db={}
+# species_read_from_db={}
+# material_read_from_db={}
 G_O_= {'г.о. Прогресс':'Прогресс',
        'г.о. Райчихинск':'Райчихинск',
        'г.о. Город Зея':'Зейский',
@@ -142,28 +156,41 @@ def get_district_from_village(village):
                 return {'Район':DISTRICT[city]}
 
 def unification_address_with_population(address):
-    population=csv_dict_reader('population_data.csv')
+    global population
     split_address={}
     flag_break=False
+    split_address_from_line = address.split(',')
+    first_district = 'нет'
+    second_district = 'нет'
+    split_address['Область'] = 'Амурская обл.'
     for vilage in population:
-        split_address_from_line=address.split(',')
 
-        address_vilage=vilage['Населёный пункт'].replace('г. ','').replace('г.','').replace('пгт ','').replace('село ','').replace('поселок ','').replace('посёлок ','').replace('железнодорожная станция ','')
-        address_vilage=address_vilage.replace('железнодорожный блок-пост ','').replace('железнодорожный разъезд ','').replace('железнодорожный блок-пост ','').replace('населённый пункт Блок-Пост ','')
+        lacality=vilage['Населёный пункт'].replace('г. ','').replace('г.','').replace('пгт ','').replace('село ','').replace('поселок ','').replace('посёлок ','').replace('железнодорожная станция ','')
+        lacality=lacality.replace('железнодорожный блок-пост ','').replace('железнодорожный разъезд ','').replace('железнодорожный блок-пост ','').replace('населённый пункт Блок-Пост ','')
+        district = vilage['Регион'].replace('Городской округ пгт ', '').replace('Городской округ г.','').rstrip().rstrip()
 
         for address_ad in split_address_from_line:
-            if address_vilage in address_ad and not address_vilage+'ий' in address_ad:
+            if lacality in address_ad and not lacality+'ий' in address_ad:
 
-                split_address['Область']=vilage['Область']
-
-                split_address['Район']=vilage['Регион']
-
+                # split_address['Область']=vilage['Область']
+                #
+                # split_address['Район']=vilage['Регион']
+                first_district = vilage['Регион']
                 split_address['Пункт населения(Город, село и т.д.)']=vilage['Населёный пункт']
+                continue
 
-                flag_break=True
-                break
-        if flag_break:
-            break
+            if district in address_ad:
+                second_district=vilage['Регион']
+                # flag_break=True
+                # break
+        # if flag_break:
+        #     break
+        if second_district=='нет':
+            split_address['Район']=first_district
+        elif second_district!=first_district:
+            split_address['Район']=second_district
+        else:
+            split_address['Район']=first_district
     return split_address
 
 def get_split_address_from_url(url,district):
@@ -247,16 +274,17 @@ def get_content(html,category,pages_count,page_count):
         features['Название'] = title
         features['Вид объекта'] = check_type_of_home(title).title()
         try:
+            online_view=0
             online_view = item.find('div', class_='snippet-title-row').find('span', class_='snippet-tag').text.strip()
-            online_view = 'Да'
+            online_view = 1
         except:
-            online_view = 'Нет'
+            online_view = 0
         features['Возможность онлайн просмотра'] = online_view
         try:
             date_all = item.find('div', class_='snippet-date-info').get('data-tooltip').strip().split(' ')
             if date_all == ['']:
                 date_all = item.find('div', class_='snippet-date-info').text.strip().split(' ')
-            date = date_all[0] + '.' + str(Month[date_all[1]]) + '.' + str(datetime.now().year)
+            date =str(datetime.now().year) + '.' + str(Month[date_all[1]]) + '.' +  date_all[0]
         except:
             date = 'нет'
         features['Дата размещения'] = date
@@ -268,9 +296,9 @@ def get_content(html,category,pages_count,page_count):
                 type_ad = price_and_rent[1].strip().split('\n')[0].strip()
             price = price_and_rent[0].strip()
         except:
-            price = 'нет'
+            price = 0
             type_ad = 'нет'
-        features['Цена'] = price
+        features['Цена'] = int(price.replace(" ",'').replace(" ",'').replace(" ",'').replace(" ",'').replace(" ",'').replace(" ",'').replace(" ",''))
         features['Вид'] = type_ad
         data.append(features)
     return data
@@ -281,27 +309,26 @@ def get_inner_content(url):
     try:
         views=soup.find('div', class_='title-info-metadata-views').text.rstrip().split('(+')
         views=int(views[0])+int(views[1].replace(')', ''))
-        views=str(views)
     except:
-        views='нет'
+        views=0
     try:
         id_ad=soup.find('div',class_='item-view-search-info-redesign').find('span').text.replace('№','').strip()
+        id_ad=int(id_ad)
     except:
-        id_ad='нет'
+        id_ad=0
     try:
         link_seller = HOST + soup.find('div', class_='seller-info-name js-seller-info-name').find('a').get('href')
     except:
         link_seller = 'нет'
+
+    secondary = 0
     try:
         spans_of_secondary=soup.find('div', class_='item-navigation').find('div',class_='breadcrumbs').find_all('span')
-        secondary='нет'
         for span_of_secondary in spans_of_secondary:
-            if 'Вторичка' in span_of_secondary.text:
-                secondary='Вторичка'
-            elif 'Новостройки' in span_of_secondary.text:
-                secondary='Первичка'
+            if 'Новостройки' in span_of_secondary.text:
+                secondary=1
+                continue
     except:
-        secondary = 'нет'
         print('Ошибка при получении свойства первичка/вторичка')
     try:
         name_seller=soup.find('div',class_='seller-info-name js-seller-info-name').text.strip()
@@ -313,6 +340,7 @@ def get_inner_content(url):
         split_address.update(get_split_address(address_inner,url))
     except Exception as e:
         print(e.__class__)
+        writer_txt(e.__class__, 'log.txt', 'a')
         address_inner='нет'
         split_address={'Область': 'нет',
             'Район': 'нет',
@@ -349,19 +377,119 @@ def get_inner_content(url):
     return features
 
 def check_from_writer(curret_ad):
-    clear_data_of_ads = csv_dict_reader('unification_data.csv')
-    for saved_ad in clear_data_of_ads:
-        if curret_ad['Ссылка на объявление']==saved_ad['Ссылка на объявление']:
-            print('проверка1')
-            return False
-        if curret_ad['Цена'] == saved_ad['Цена']  and curret_ad['Этажей в доме']==saved_ad['Этажей в доме'] and curret_ad['Этаж']==saved_ad['Этаж'] and curret_ad['Общая площадь'] != saved_ad['Общая площадь'] and curret_ad['Адрес Полный']==saved_ad['Адрес Полный']:
-            print('проверка2')
-            writer_str_csv(curret_ad,'ban_if_similar_ads.csv','a')
-            return False
+    # clear_data_of_ads = csv_dict_reader('unification_data.csv')
+    try:
+        mycursor=connection.cursor()
+        sql='SELECT linkAd,status,idAds,price FROM avito_db.ads where linkAd= "'+curret_ad['Ссылка на объявление']+'";'
+        mycursor.execute(sql)
+        query=mycursor.fetchall()
+        if len(list(query))!=0:
+            ans = list(query[0])
+            status_of_original=ans[1]
+            id_of_original=ans[2]
+            if ans:
+                if ans[1] == 0:
+                    sql="UPDATE `ads` set `status`='1',`price`='"+str(curret_ad['Цена'])+"' WHERE (`idAds` = '"+str(ans[2])+"');"
+
+                    mycursor.execute(sql)
+                    connection.commit()
+                    return False
+                if ans[3]!=curret_ad['Цена']:
+                    sql = "UPDATE `ads` set `price`='" + str(curret_ad['Цена']) + "' WHERE (`idAds` = '" +str(ans[2])+ "');"
+                    mycursor.execute(sql)
+                    connection.commit()
+                    return False
+                return False
+
+        sql='SELECT linkAd,status,idAds,price FROM avito_db.adsbanned where linkAd= "'+curret_ad['Ссылка на объявление']+'";'
+
+        mycursor.execute(sql)
+        query=mycursor.fetchall()
+        if len(list(query)) != 0:
+            ans_b = list(query[0])
+            if ans_b:
+                if status_of_original == 0:
+                    sql = "UPDATE `ads` set `status`='1',`price`='" + str(curret_ad['Цена']) + "' WHERE (`idAds` = '" + str(
+                        ans[2]) + "');"
+                    mycursor.execute(sql)
+                    return False
+                return False
+
+        sql='SELECT price,`numberOfFloors`,`floor`,`totalArea`,`addressFull`,idAds FROM avito_db.ads;'
+        mycursor.execute(sql)
+        clear_data_of_ads=mycursor.fetchall()
+    except Exception as e:
+        print(e.__class__)
+        writer_txt(e.__class__, 'log.txt', 'a')
+        return False
+    try:
+        for saved_ad in clear_data_of_ads:
+            saved_ad=list(saved_ad)
+            if curret_ad['Цена'] == saved_ad[0]  and curret_ad['Этажей в доме']==saved_ad[1] and curret_ad['Этаж']==saved_ad[2] and curret_ad['Общая площадь'] != saved_ad[3] and curret_ad['Адрес Полный']==saved_ad[4]:
+                writer_db(curret_ad,['idOfOriginalAd'],[str(saved_ad[5])],'adsbanned')
+                return False
+    except Exception as e:
+        print('Ошибка при проверки на бан')
+        print(e.__class__)
+        writer_txt(e.__class__, 'log.txt', 'a')
+        return False
     return True
 
+def writer_db(line,fieldnames=[],values=[],table="ads"):
+    global district_read_from_db
+    global lacality_read_from_db
+    mycursor = connection.cursor()
+
+    sql = "INSERT INTO "+table+" (`name`,`price`,`addressFull`,`primary`,`date`,`linkAd`,`views`,`idAdInSite`,`seller`,`linkSeller`,`floor`,`numberOfFloors`,`numberOfRooms`,`livingSpace`,`totalArea`,`kithenArea`,`yearOfConstruction`,`finishing`,`developer`,`nameOfTheNewBulding`,`thePlots`,`distanseToCity`,`online`,`ownership`,`idKindOfProperty`,`species_idSpecie`,`lacality_idlacality`,`idMaterial`"
+    for fieldname in fieldnames:
+        sql+=", '"+fieldname+"'"
+    
+    sql+=") VALUES ("
+    
+    sql+="'"+(line['Название'])+"'"
+    sql+=","+"'"+str(line['Цена'])+"'"
+    sql+=","+"'"+(line['Адрес Полный'])+"'"
+    sql+=","+"'"+str(line['Первичка/Вторичка'])+"'"
+    sql+=","+"'"+(line['Дата размещения'])+"'"
+    sql+=","+"'"+(line['Ссылка на объявление'])+"'"
+    sql+=","+"'"+str(line['Просмотров'])+"'"
+    sql+=","+"'"+str(line['id_ad'])+"'"
+    sql+=","+"'"+(line['Имя продовца'])+"'"
+    sql+=","+"'"+(line['Ссылка на прдовца'])+"'"
+    sql+=","+"'"+(line['Этаж'])+"'"
+    sql+=","+"'"+(line['Этажей в доме'])+"'"
+    sql+=","+"'"+(line['Количество комнат'])+"'"
+    sql+=","+"'"+(line['Жилая площадь'])+"'"
+    sql+=","+"'"+(line['Общая площадь'])+"'"
+    sql+=","+"'"+(line['Площадь кухни'])+"'"
+    sql+=","+"'"+(line['Год постройки'])+"'"
+    sql+=","+"'"+(line['Отделка'])+"'"
+    sql+=","+"'"+(line['Официальный застройщик'])+"'"
+    sql+=","+"'"+(line['Название новостройки'])+"'"
+    sql+=","+"'"+(line['Площадь участка'])+"'"
+    sql+=","+"'"+(line['Расстояние до города'])+"'"
+    sql+=","+"'"+str(line['Возможность онлайн просмотра'])+"'"
+    sql+=","+"'"+(line['Право собственности'])+"'"
+    sql+=","+"'"+str(property_read_from_db[line['Вид объекта'].lower()])+"'"
+    sql+=","+"'"+str(species_read_from_db[line['Вид']])+"'"
+    # if 'г.' in line['Пункт населения(Город, село и т.д.)'] and not 'г. ' in line['Пункт населения(Город, село и т.д.)']:
+    #     line['Пункт населения(Город, село и т.д.)']=line['Пункт населения(Город, село и т.д.)'].replace('г.','г. ')
+    get_id_of_lacality='SELECT idlacality FROM avito_db.lacality inner join district on (lacality.idDistrict=district.idDistrict) inner join regions on (lacality.idRegion=regions.idRegion) where lacality.name="'+line['Пункт населения(Город, село и т.д.)']+'" and district.name = "'+line['Район']+'";'
+    # print(get_id_of_lacality)
+    id_of_lacality=mycursor.execute(get_id_of_lacality)
+    # print(list_of_lacality)
+    # for x in list_of_lacality:
+    #     id_of_lacality=x
+    sql+=","+"'"+str(id_of_lacality)+"'"
+    sql+=","+"'"+str(material_read_from_db[line["Материал стен"]])+"'"
+    for value in values:
+        sql+=","+"'"+str(value)+"'"
+    sql+=");"
+    mycursor.execute(sql)
+    connection.commit()
+
 def parse(category):
-    data=[]
+    # data=[]
     global flag_break_from_url
     flag_break_from_url = False
     url=ALL_NEED_URL_FROM_CATEGORY[category]
@@ -369,6 +497,7 @@ def parse(category):
     data=[]
     if html.status_code==200:
         pages_count=get_pages_count(html.text)
+        # pages_count=1
         for page in range(1,pages_count+1):
             print(f'Парсинг страницы {page} из {pages_count}')
             html=get_html(url, params={'p':page})
@@ -378,19 +507,78 @@ def parse(category):
                 break
         if data==[]:
             return
-        # writer_txt('', str(category) + '.txt')
+        writer_txt('', str(category) + '.txt')
+        new_data=[]
         for line in data:
             # writer_txt(line['Ссылка на объявление'], str(category) + '.txt', 'a')
             line.update(get_inner_content(line['Ссылка на объявление']))
             line = filling_empty_features(line)
             if check_from_writer(line):
-                print('Чекнулась')
+                print('Проверка на запись')
                 # writer_str_csv(line,'new_data.csv','a')
+                try:
+                    writer_db(line)
+                except Exception as e:
+                    print(e.__class__)
+                    writer_txt(e.__class__, 'log.txt', 'a')
+
             time.sleep(1)
+
+
     else:
         print('Не удалось получить html')
 
 if __name__ == "__main__":
+    global district_read_from_db
+    global property_read_from_db
+    global species_read_from_db
+    global material_read_from_db
+    global lacality_read_from_db
+    global population
+    population=csv_dict_reader('population_data.csv')
+
+    
+    district_read_from_db = {}
+    lacality_read_from_db = {}
+    property_read_from_db = {}
+    species_read_from_db = {}
+    material_read_from_db = {}
+    try:
+        with connection.cursor() as cursor:
+            query = 'SELECT * FROM district'
+            cursor.execute(query)
+
+            for row in cursor:
+                district_read_from_db[row[1]] = row[0]
+
+
+        with connection.cursor() as cursor:
+            query = 'SELECT * FROM lacality'
+            cursor.execute(query)
+            for row in cursor:
+                lacality_read_from_db[row[1]] = row[0]
+
+        with connection.cursor() as cursor:
+            query = 'SELECT * FROM kindofpropertys'
+            cursor.execute(query)
+            for row in cursor:
+                property_read_from_db[row[1]] = row[0]
+
+
+        with connection.cursor() as cursor:
+            query = 'SELECT * FROM buildingmaterials'
+            cursor.execute(query)
+            for row in cursor:
+                material_read_from_db[row[1]] = row[0]
+
+        with connection.cursor() as cursor:
+            query = 'SELECT * FROM species'
+            cursor.execute(query)
+            for row in cursor:
+                species_read_from_db[row[1]] = row[0]
+    except:
+        print('Неудача при чтении первых свойств')
+        input()
     while True:
         for category in ALL_NEED_URL_FROM_CATEGORY.keys():
             print(category.upper())

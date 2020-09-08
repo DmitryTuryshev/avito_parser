@@ -16,24 +16,29 @@ def csv_dict_reader(path, delimiter=',', code='utf-8'):
 
 if __name__ == '__main__':
     # data=csv_dict_reader('population_data.csv')
-    data=csv_dict_reader('unification_data.csv')
-    wall=[]
-    count=0
-    for line in data:
-        if not line['Материал стен'] in wall:
-            count+=1
-            wall.append(line['Материал стен'])
-            print(count,' ',line['Материал стен'])
-    val=[]
-    for line in wall:
-        val=(line)
-        query = 'INSERT INTO buildingmaterials (name) VALUES (%s)'
-        with connection.cursor() as cursor:
-            cursor.execute(query, val)
-            connection.commit()
-    print(val)
-
-
+    # data=csv_dict_reader('unification_data.csv')
+    # wall=[]
+    # count=0
+    # for line in data:
+    #     if not line['Материал стен'] in wall:
+    #         count+=1
+    #         wall.append(line['Материал стен'])
+    #         print(count,' ',line['Материал стен'])
+    # val=[]
+    # for line in wall:
+    #     val=(line)
+    #     query = 'INSERT INTO buildingmaterials (name) VALUES (%s)'
+    #     with connection.cursor() as cursor:
+    #         cursor.execute(query, val)
+    #         connection.commit()
+    # print(val)
+    # val=[['name','cur'],['name','cur']]
+    # val.append(['end','end2'])
+    # print((val))
+    # data=[]
+    # for line in val:
+    #     data.append(tuple(line))
+    # print(data)
     #
     # with connection.cursor() as cursor:
     #     query = 'SELECT * FROM district'
@@ -80,14 +85,23 @@ if __name__ == '__main__':
     # connection.commit()
     mycursor = connection.cursor()
 
-    sql = "INSERT INTO species (name) VALUES (%s)"
-    val = [
-        ('продажа'),
-        ('в месяц'),
-        ('за сутки'),
-    ]
+    # sql = "INSERT INTO species (name) VALUES (%s)"
+    # val = [
+    #     ('продажа'),
+    #     ('в месяц'),
+    #     ('за сутки'),
+    # ]
 
-    mycursor.executemany(sql, val)
+    # mycursor.executemany(sql, val)
 
+    sql='SELECT linkAd,status FROM avito_db.ads where linkAd= "https://www.avito.ru/amurskaya_oblast_blagoveschensk/kvartiry/studiya_28_m_34_et._1614484393";'
+    mycursor.execute(sql)
+    ans = list(mycursor.fetchall()[0])
+    print(ans)
+    if ans:
+        print(ans[1])
+        if ans[1]==0:
+            print('Status 0')
+        print('dd')
     connection.commit()
     connection.close()

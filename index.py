@@ -516,10 +516,10 @@ def parse(category):
             return
 
         for line in data:
-            # writer_txt(line['Ссылка на объявление'], str(category) + '.txt', 'a')
+            writer_txt(line['Ссылка на объявление'], str(category) + '.txt', 'a')
             line.update(get_inner_content(line['Ссылка на объявление']))
             line = filling_empty_features(line)
-            writer_txt(line, str(category) + '.txt')
+            # writer_txt(line, str(category) + '.txt')
             if check_from_writer(line):
                 print('Проверка на запись')
                 # writer_str_csv(line,'new_data.csv','a')

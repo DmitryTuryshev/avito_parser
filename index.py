@@ -110,9 +110,10 @@ def get_html(url, header=None, params=None):
         try:
             r=requests.get(url, headers=header, params=params)
             if r.status_code!=200:
-                print(r.status_code)
+                print(r.status_code+str(datetime.now()))
                 time.sleep(1)
                 continue
+            time.sleep(1)
             return r
         except requests.exceptions.ConnectionError:
             print('Connection Error')
@@ -341,7 +342,7 @@ def get_inner_content(url):
         split_address.update(get_split_address(address_inner,url))
     except Exception as e:
         print(e.__class__)
-        writer_txt(str(datetime.datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
+        writer_txt(str(datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
         address_inner='нет'
         split_address={'Область': 'нет',
             'Район': 'нет',
@@ -416,78 +417,83 @@ def check_from_writer(curret_ad):
                     return False
                 return False
 
-        sql='SELECT price,`numberOfFloors`,`floor`,`totalArea`,`addressFull`,idAds FROM avito_db.ads;'
-        mycursor.execute(sql)
-        clear_data_of_ads=mycursor.fetchall()
+
     except Exception as e:
         print(e.__class__)
-        writer_txt(str(datetime.datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
+        writer_txt(str(datetime.now())+':  '+e.__class__+curret_ad+'\n\n', 'log.txt', 'a')
         return False
+    sql = 'SELECT price,`numberOfFloors`,`floor`,`totalArea`,`addressFull`,idAds FROM avito_db.ads;'
+    mycursor.execute(sql)
+    clear_data_of_ads = mycursor.fetchall()
     try:
         for saved_ad in clear_data_of_ads:
             saved_ad=list(saved_ad)
             if curret_ad['Цена'] == saved_ad[0]  and curret_ad['Этажей в доме']==saved_ad[1] and curret_ad['Этаж']==saved_ad[2] and curret_ad['Общая площадь'] != saved_ad[3] and curret_ad['Адрес Полный']==saved_ad[4]:
                 writer_db(curret_ad,['idOfOriginalAd'],[str(saved_ad[5])],'adsbanned')
+                # if
                 return False
     except Exception as e:
         print('Ошибка при проверки на бан')
         print(e.__class__)
-        writer_txt(str(datetime.datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
+        writer_txt(str(datetime.now())+':  '+e.__class__+curret_ad+'\n\n', 'log.txt', 'a')
         return False
     return True
 
 def writer_db(line,fieldnames=[],values=[],table="ads"):
-    global district_read_from_db
-    global lacality_read_from_db
-    mycursor = connection.cursor()
+    try:
+        global district_read_from_db
+        global lacality_read_from_db
+        mycursor = connection.cursor()
 
-    sql = "INSERT INTO "+table+" (`name`,`price`,`addressFull`,`primary`,`date`,`linkAd`,`views`,`idAdInSite`,`seller`,`linkSeller`,`floor`,`numberOfFloors`,`numberOfRooms`,`livingSpace`,`totalArea`,`kithenArea`,`yearOfConstruction`,`finishing`,`developer`,`nameOfTheNewBulding`,`thePlots`,`distanseToCity`,`online`,`ownership`,`idKindOfProperty`,`species_idSpecie`,`lacality_idlacality`,`idMaterial`"
-    for fieldname in fieldnames:
-        sql+=", '"+fieldname+"'"
-    
-    sql+=") VALUES ("
-    
-    sql+="'"+(line['Название'])+"'"
-    sql+=","+"'"+str(line['Цена'])+"'"
-    sql+=","+"'"+(line['Адрес Полный'])+"'"
-    sql+=","+"'"+str(line['Первичка/Вторичка'])+"'"
-    sql+=","+"'"+(line['Дата размещения'])+"'"
-    sql+=","+"'"+(line['Ссылка на объявление'])+"'"
-    sql+=","+"'"+str(line['Просмотров'])+"'"
-    sql+=","+"'"+str(line['id_ad'])+"'"
-    sql+=","+"'"+(line['Имя продовца'])+"'"
-    sql+=","+"'"+(line['Ссылка на прдовца'])+"'"
-    sql+=","+"'"+(line['Этаж'])+"'"
-    sql+=","+"'"+(line['Этажей в доме'])+"'"
-    sql+=","+"'"+(line['Количество комнат'])+"'"
-    sql+=","+"'"+(line['Жилая площадь'])+"'"
-    sql+=","+"'"+(line['Общая площадь'])+"'"
-    sql+=","+"'"+(line['Площадь кухни'])+"'"
-    sql+=","+"'"+(line['Год постройки'])+"'"
-    sql+=","+"'"+(line['Отделка'])+"'"
-    sql+=","+"'"+(line['Официальный застройщик'])+"'"
-    sql+=","+"'"+(line['Название новостройки'])+"'"
-    sql+=","+"'"+(line['Площадь участка'])+"'"
-    sql+=","+"'"+(line['Расстояние до города'])+"'"
-    sql+=","+"'"+str(line['Возможность онлайн просмотра'])+"'"
-    sql+=","+"'"+(line['Право собственности'])+"'"
-    sql+=","+"'"+str(property_read_from_db[line['Вид объекта'].lower()])+"'"
-    sql+=","+"'"+str(species_read_from_db[line['Вид']])+"'"
-    # if 'г.' in line['Пункт населения(Город, село и т.д.)'] and not 'г. ' in line['Пункт населения(Город, село и т.д.)']:
-    #     line['Пункт населения(Город, село и т.д.)']=line['Пункт населения(Город, село и т.д.)'].replace('г.','г. ')
-    get_id_of_lacality='SELECT idlacality FROM avito_db.lacality inner join district on (lacality.idDistrict=district.idDistrict) inner join regions on (lacality.idRegion=regions.idRegion) where lacality.name="'+line['Пункт населения(Город, село и т.д.)']+'" and district.name = "'+line['Район']+'";'
-    # print(get_id_of_lacality)
-    id_of_lacality=mycursor.execute(get_id_of_lacality)
-    # print(list_of_lacality)
-    # for x in list_of_lacality:
-    #     id_of_lacality=x
-    sql+=","+"'"+str(id_of_lacality)+"'"
-    sql+=","+"'"+str(material_read_from_db[line["Материал стен"]])+"'"
-    for value in values:
-        sql+=","+"'"+str(value)+"'"
-    sql+=");"
-    mycursor.execute(sql)
-    connection.commit()
+        sql = "INSERT INTO "+table+" (`name`,`price`,`addressFull`,`primary`,`date`,`linkAd`,`views`,`idAdInSite`,`seller`,`linkSeller`,`floor`,`numberOfFloors`,`numberOfRooms`,`livingSpace`,`totalArea`,`kithenArea`,`yearOfConstruction`,`finishing`,`developer`,`nameOfTheNewBulding`,`thePlots`,`distanseToCity`,`online`,`ownership`,`idKindOfProperty`,`species_idSpecie`,`lacality_idlacality`,`idMaterial`"
+        for fieldname in fieldnames:
+            sql+=", '"+fieldname+"'"
+
+        sql+=") VALUES ("
+
+        sql+="'"+(line['Название'])+"'"
+        sql+=","+"'"+str(line['Цена'])+"'"
+        sql+=","+"'"+(line['Адрес Полный'])+"'"
+        sql+=","+"'"+str(line['Первичка/Вторичка'])+"'"
+        sql+=","+"'"+(line['Дата размещения'])+"'"
+        sql+=","+"'"+(line['Ссылка на объявление'])+"'"
+        sql+=","+"'"+str(line['Просмотров'])+"'"
+        sql+=","+"'"+str(line['id_ad'])+"'"
+        sql+=","+"'"+(line['Имя продовца'])+"'"
+        sql+=","+"'"+(line['Ссылка на прдовца'])+"'"
+        sql+=","+"'"+(line['Этаж'])+"'"
+        sql+=","+"'"+(line['Этажей в доме'])+"'"
+        sql+=","+"'"+(line['Количество комнат'])+"'"
+        sql+=","+"'"+(line['Жилая площадь'])+"'"
+        sql+=","+"'"+(line['Общая площадь'])+"'"
+        sql+=","+"'"+(line['Площадь кухни'])+"'"
+        sql+=","+"'"+(line['Год постройки'])+"'"
+        sql+=","+"'"+(line['Отделка'])+"'"
+        sql+=","+"'"+(line['Официальный застройщик'])+"'"
+        sql+=","+"'"+(line['Название новостройки'])+"'"
+        sql+=","+"'"+(line['Площадь участка'])+"'"
+        sql+=","+"'"+(line['Расстояние до города'])+"'"
+        sql+=","+"'"+str(line['Возможность онлайн просмотра'])+"'"
+        sql+=","+"'"+(line['Право собственности'])+"'"
+        sql+=","+"'"+str(property_read_from_db[line['Вид объекта'].lower()])+"'"
+        sql+=","+"'"+str(species_read_from_db[line['Вид']])+"'"
+        # if 'г.' in line['Пункт населения(Город, село и т.д.)'] and not 'г. ' in line['Пункт населения(Город, село и т.д.)']:
+        #     line['Пункт населения(Город, село и т.д.)']=line['Пункт населения(Город, село и т.д.)'].replace('г.','г. ')
+        get_id_of_lacality='SELECT idlacality FROM avito_db.lacality inner join district on (lacality.idDistrict=district.idDistrict) inner join regions on (lacality.idRegion=regions.idRegion) where lacality.name="'+line['Пункт населения(Город, село и т.д.)']+'" and district.name = "'+line['Район']+'";'
+        # print(get_id_of_lacality)
+        id_of_lacality=mycursor.execute(get_id_of_lacality)
+        # print(list_of_lacality)
+        # for x in list_of_lacality:
+        #     id_of_lacality=x
+        sql+=","+"'"+str(id_of_lacality)+"'"
+        sql+=","+"'"+str(material_read_from_db[line["Материал стен"]])+"'"
+        for value in values:
+            sql+=","+"'"+str(value)+"'"
+        sql+=");"
+        mycursor.execute(sql)
+        connection.commit()
+    except:
+        print(sql)
 
 def parse(category):
     # data=[]
@@ -503,17 +509,17 @@ def parse(category):
             print(f'Парсинг страницы {page} из {pages_count}')
             html=get_html(url, params={'p':page})
             data+=get_content(html.text,category,pages_count,page)
-            time.sleep(1)
             if  flag_break_from_url:
                 break
+
         if data==[]:
             return
-        writer_txt('', str(category) + '.txt')
-        new_data=[]
+
         for line in data:
             # writer_txt(line['Ссылка на объявление'], str(category) + '.txt', 'a')
             line.update(get_inner_content(line['Ссылка на объявление']))
             line = filling_empty_features(line)
+            writer_txt(line, str(category) + '.txt')
             if check_from_writer(line):
                 print('Проверка на запись')
                 # writer_str_csv(line,'new_data.csv','a')
@@ -521,10 +527,7 @@ def parse(category):
                     writer_db(line)
                 except Exception as e:
                     print(e.__class__)
-                    writer_txt(str(datetime.datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
-
-
-            time.sleep(1)
+                    writer_txt(str(datetime.now())+':  '+e.__class__+line+'\n\n', 'log.txt', 'a')
 
 
     else:
@@ -585,3 +588,4 @@ if __name__ == "__main__":
         for category in ALL_NEED_URL_FROM_CATEGORY.keys():
             print(category.upper())
             parse(category)
+            time.sleep(1)

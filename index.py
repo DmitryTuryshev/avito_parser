@@ -342,7 +342,7 @@ def get_inner_content(url):
         split_address.update(get_split_address(address_inner,url))
     except Exception as e:
         print(e.__class__)
-        writer_txt(str(datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
+        writer_txt(':  '+e.__class__+'\n', 'log.txt', 'a')
         address_inner='нет'
         split_address={'Область': 'нет',
             'Район': 'нет',
@@ -420,7 +420,7 @@ def check_from_writer(curret_ad):
 
     except Exception as e:
         print(e.__class__)
-        writer_txt(str(datetime.now())+':  '+e.__class__+curret_ad+'\n\n', 'log.txt', 'a')
+        writer_txt(':  '+e.__class__+curret_ad+'\n\n', 'log.txt', 'a')
         return False
     sql = 'SELECT price,`numberOfFloors`,`floor`,`totalArea`,`addressFull`,idAds FROM avito_db.ads;'
     mycursor.execute(sql)
@@ -435,7 +435,7 @@ def check_from_writer(curret_ad):
     except Exception as e:
         print('Ошибка при проверки на бан')
         print(e.__class__)
-        writer_txt(str(datetime.now())+':  '+e.__class__+curret_ad+'\n\n', 'log.txt', 'a')
+        writer_txt(':  '+e.__class__+curret_ad+'\n\n', 'log.txt', 'a')
         return False
     return True
 
@@ -527,7 +527,7 @@ def parse(category):
                     writer_db(line)
                 except Exception as e:
                     print(e.__class__)
-                    writer_txt(str(datetime.now())+':  '+e.__class__+line+'\n\n', 'log.txt', 'a')
+                    writer_txt(':  '+e.__class__+line+'\n\n', 'log.txt', 'a')
 
 
     else:

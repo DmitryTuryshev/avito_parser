@@ -1,0 +1,1 @@
+<class 'pymysql.err.ProgrammingError'>

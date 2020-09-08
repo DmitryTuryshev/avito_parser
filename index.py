@@ -116,6 +116,7 @@ def get_html(url, header=None, params=None):
             return r
         except requests.exceptions.ConnectionError:
             print('Connection Error')
+        time.sleep(1)
 
 def get_pages_count(html):
     soup = BeautifulSoup(html, 'html.parser')
@@ -340,7 +341,7 @@ def get_inner_content(url):
         split_address.update(get_split_address(address_inner,url))
     except Exception as e:
         print(e.__class__)
-        writer_txt(e.__class__, 'log.txt', 'a')
+        writer_txt(str(datetime.datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
         address_inner='нет'
         split_address={'Область': 'нет',
             'Район': 'нет',
@@ -420,7 +421,7 @@ def check_from_writer(curret_ad):
         clear_data_of_ads=mycursor.fetchall()
     except Exception as e:
         print(e.__class__)
-        writer_txt(e.__class__, 'log.txt', 'a')
+        writer_txt(str(datetime.datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
         return False
     try:
         for saved_ad in clear_data_of_ads:
@@ -431,7 +432,7 @@ def check_from_writer(curret_ad):
     except Exception as e:
         print('Ошибка при проверки на бан')
         print(e.__class__)
-        writer_txt(e.__class__, 'log.txt', 'a')
+        writer_txt(str(datetime.datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
         return False
     return True
 
@@ -520,7 +521,7 @@ def parse(category):
                     writer_db(line)
                 except Exception as e:
                     print(e.__class__)
-                    writer_txt(e.__class__, 'log.txt', 'a')
+                    writer_txt(str(datetime.datetime.now())+':  '+e.__class__+'\n', 'log.txt', 'a')
 
 
             time.sleep(1)

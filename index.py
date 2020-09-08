@@ -2,7 +2,7 @@ import requests
 import csv
 from bs4 import BeautifulSoup
 import time
-from datetime import datetime,date,time
+from datetime import datetime
 from fake_useragent import UserAgent
 import pymysql
 

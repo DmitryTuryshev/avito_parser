@@ -258,6 +258,7 @@ def get_content(html,category,pages_count,page_count):
     for index, item in enumerate(items):
         features={}
         if ((pages_count - 1) * page_count + index) >= count_ad:
+            return []
             break
         print('Проход по объявлениям: ', index + 1, ' из ', count_ad, '(', len(items), ')')
         try:
@@ -268,7 +269,7 @@ def get_content(html,category,pages_count,page_count):
         if link in last_viewed:
             global flag_break_from_url
             flag_break_from_url = True
-            break
+            return []
         try:
             title = item.find('div', class_='snippet-title-row').find('a', class_='snippet-link').text.strip()
         except:
@@ -288,6 +289,8 @@ def get_content(html,category,pages_count,page_count):
                 date_all = item.find('div', class_='snippet-date-info').text.strip().split(' ')
             date =str(datetime.now().year) + '.' + str(Month[date_all[1]]) + '.' +  date_all[0]
         except:
+            print(link)
+            input()
             date = 'нет'
         features['Дата размещения'] = date
         try:
@@ -337,6 +340,11 @@ def get_inner_content(url):
     except:
         name_seller='нет'
     try:
+        split_address = {'Область': 'нет',
+                         'Район': 'нет',
+                         'Пункт населения(Город, село и т.д.)': 'нет',
+                         'Улица': 'нет',
+                         'Номер дома': 'нет'}
         address_inner=soup.find('span',class_='item-address__string').text.strip()
         split_address=unification_address_with_population(address_inner)
         split_address.update(get_split_address(address_inner,url))
@@ -344,11 +352,6 @@ def get_inner_content(url):
         print(e.__class__)
         writer_txt(':  '+e.__class__+'\n', 'log.txt', 'a')
         address_inner='нет'
-        split_address={'Область': 'нет',
-            'Район': 'нет',
-            'Пункт населения(Город, село и т.д.)': 'нет',
-            'Улица': 'нет',
-            'Номер дома': 'нет'}
     propertys=soup.find_all('li',class_='item-params-list-item')
     features={}
     for feature in propertys:
@@ -420,7 +423,7 @@ def check_from_writer(curret_ad):
 
     except Exception as e:
         print(e.__class__)
-        writer_txt(':  '+e.__class__+curret_ad+'\n\n', 'log.txt', 'a')
+        writer_txt(e.__class__, 'log.txt', 'a')
         return False
     sql = 'SELECT price,`numberOfFloors`,`floor`,`totalArea`,`addressFull`,idAds FROM avito_db.ads;'
     mycursor.execute(sql)
@@ -435,65 +438,70 @@ def check_from_writer(curret_ad):
     except Exception as e:
         print('Ошибка при проверки на бан')
         print(e.__class__)
-        writer_txt(':  '+e.__class__+curret_ad+'\n\n', 'log.txt', 'a')
+        writer_txt(e.__class__, 'log.txt', 'a')
         return False
     return True
 
 def writer_db(line,fieldnames=[],values=[],table="ads"):
+    # try:
+    global district_read_from_db
+    global lacality_read_from_db
+    mycursor = connection.cursor()
+
+    sql = "INSERT INTO "+table+" (`name`,`price`,`addressFull`,`primary`,`date`,`linkAd`,`views`,`idAdInSite`,`seller`,`linkSeller`,`floor`,`numberOfFloors`,`numberOfRooms`,`livingSpace`,`totalArea`,`kithenArea`,`yearOfConstruction`,`finishing`,`developer`,`nameOfTheNewBulding`,`thePlots`,`distanseToCity`,`online`,`ownership`,`idKindOfProperty`,`species_idSpecie`,`lacality_idlacality`,`idMaterial`"
+    for fieldname in fieldnames:
+        sql+=", '"+fieldname+"'"
+
+    sql+=") VALUES ("
+
+    sql+="'"+(line['Название'])+"'"
+    sql+=","+"'"+str(line['Цена'])+"'"
+    sql+=","+"'"+(line['Адрес Полный'])+"'"
+    sql+=","+"'"+str(line['Первичка/Вторичка'])+"'"
+    sql+=","+"'"+(line['Дата размещения'])+"'"
+    sql+=","+"'"+(line['Ссылка на объявление'])+"'"
+    sql+=","+"'"+str(line['Просмотров'])+"'"
+    sql+=","+"'"+str(line['id_ad'])+"'"
+    sql+=","+"'"+(line['Имя продовца'])+"'"
+    sql+=","+"'"+(line['Ссылка на прдовца'])+"'"
+    sql+=","+"'"+(line['Этаж'])+"'"
+    sql+=","+"'"+(line['Этажей в доме'])+"'"
+    sql+=","+"'"+(line['Количество комнат'])+"'"
+    sql+=","+"'"+(line['Жилая площадь'])+"'"
+    sql+=","+"'"+(line['Общая площадь'])+"'"
+    sql+=","+"'"+(line['Площадь кухни'])+"'"
+    sql+=","+"'"+(line['Год постройки'])+"'"
+    sql+=","+"'"+(line['Отделка'])+"'"
+    sql+=","+"'"+(line['Официальный застройщик'])+"'"
+    sql+=","+"'"+(line['Название новостройки'])+"'"
+    sql+=","+"'"+(line['Площадь участка'])+"'"
+    sql+=","+"'"+(line['Расстояние до города'])+"'"
+    sql+=","+"'"+str(line['Возможность онлайн просмотра'])+"'"
+    sql+=","+"'"+(line['Право собственности'])+"'"
+    sql+=","+"'"+str(property_read_from_db[line['Вид объекта'].lower()])+"'"
+    sql+=","+"'"+str(species_read_from_db[line['Вид']])+"'"
     try:
-        global district_read_from_db
-        global lacality_read_from_db
-        mycursor = connection.cursor()
-
-        sql = "INSERT INTO "+table+" (`name`,`price`,`addressFull`,`primary`,`date`,`linkAd`,`views`,`idAdInSite`,`seller`,`linkSeller`,`floor`,`numberOfFloors`,`numberOfRooms`,`livingSpace`,`totalArea`,`kithenArea`,`yearOfConstruction`,`finishing`,`developer`,`nameOfTheNewBulding`,`thePlots`,`distanseToCity`,`online`,`ownership`,`idKindOfProperty`,`species_idSpecie`,`lacality_idlacality`,`idMaterial`"
-        for fieldname in fieldnames:
-            sql+=", '"+fieldname+"'"
-
-        sql+=") VALUES ("
-
-        sql+="'"+(line['Название'])+"'"
-        sql+=","+"'"+str(line['Цена'])+"'"
-        sql+=","+"'"+(line['Адрес Полный'])+"'"
-        sql+=","+"'"+str(line['Первичка/Вторичка'])+"'"
-        sql+=","+"'"+(line['Дата размещения'])+"'"
-        sql+=","+"'"+(line['Ссылка на объявление'])+"'"
-        sql+=","+"'"+str(line['Просмотров'])+"'"
-        sql+=","+"'"+str(line['id_ad'])+"'"
-        sql+=","+"'"+(line['Имя продовца'])+"'"
-        sql+=","+"'"+(line['Ссылка на прдовца'])+"'"
-        sql+=","+"'"+(line['Этаж'])+"'"
-        sql+=","+"'"+(line['Этажей в доме'])+"'"
-        sql+=","+"'"+(line['Количество комнат'])+"'"
-        sql+=","+"'"+(line['Жилая площадь'])+"'"
-        sql+=","+"'"+(line['Общая площадь'])+"'"
-        sql+=","+"'"+(line['Площадь кухни'])+"'"
-        sql+=","+"'"+(line['Год постройки'])+"'"
-        sql+=","+"'"+(line['Отделка'])+"'"
-        sql+=","+"'"+(line['Официальный застройщик'])+"'"
-        sql+=","+"'"+(line['Название новостройки'])+"'"
-        sql+=","+"'"+(line['Площадь участка'])+"'"
-        sql+=","+"'"+(line['Расстояние до города'])+"'"
-        sql+=","+"'"+str(line['Возможность онлайн просмотра'])+"'"
-        sql+=","+"'"+(line['Право собственности'])+"'"
-        sql+=","+"'"+str(property_read_from_db[line['Вид объекта'].lower()])+"'"
-        sql+=","+"'"+str(species_read_from_db[line['Вид']])+"'"
-        # if 'г.' in line['Пункт населения(Город, село и т.д.)'] and not 'г. ' in line['Пункт населения(Город, село и т.д.)']:
-        #     line['Пункт населения(Город, село и т.д.)']=line['Пункт населения(Город, село и т.д.)'].replace('г.','г. ')
-        get_id_of_lacality='SELECT idlacality FROM avito_db.lacality inner join district on (lacality.idDistrict=district.idDistrict) inner join regions on (lacality.idRegion=regions.idRegion) where lacality.name="'+line['Пункт населения(Город, село и т.д.)']+'" and district.name = "'+line['Район']+'";'
-        # print(get_id_of_lacality)
-        id_of_lacality=mycursor.execute(get_id_of_lacality)
-        # print(list_of_lacality)
-        # for x in list_of_lacality:
-        #     id_of_lacality=x
-        sql+=","+"'"+str(id_of_lacality)+"'"
-        sql+=","+"'"+str(material_read_from_db[line["Материал стен"]])+"'"
-        for value in values:
-            sql+=","+"'"+str(value)+"'"
-        sql+=");"
-        mycursor.execute(sql)
-        connection.commit()
+        line['Пункт населения(Город, село и т.д.)']
     except:
-        print(sql)
+        print(line)
+    # if 'г.' in line['Пункт населения(Город, село и т.д.)'] and not 'г. ' in line['Пункт населения(Город, село и т.д.)']:
+    #     line['Пункт населения(Город, село и т.д.)']=line['Пункт населения(Город, село и т.д.)'].replace('г.','г. ')
+    get_id_of_lacality='SELECT idlacality FROM avito_db.lacality inner join district on (lacality.idDistrict=district.idDistrict) inner join regions on (lacality.idRegion=regions.idRegion) where lacality.name="'+line['Пункт населения(Город, село и т.д.)']+'" and district.name = "'+line['Район']+'";'
+    # print(get_id_of_lacality)
+    id_of_lacality=mycursor.execute(get_id_of_lacality)
+    # print(list_of_lacality)
+    # for x in list_of_lacality:
+    #     id_of_lacality=x
+    sql+=","+"'"+str(id_of_lacality)+"'"
+    sql+=","+"'"+str(material_read_from_db[line["Материал стен"]])+"'"
+    for value in values:
+        sql+=","+"'"+str(value)+"'"
+    sql+=");"
+    print(sql)
+    mycursor.execute(sql)
+    connection.commit()
+    # except:
+    #     print(sql)
 
 def parse(category):
     # data=[]
@@ -515,19 +523,26 @@ def parse(category):
         if data==[]:
             return
 
-        for line in data:
+        for index,line in enumerate(data):
             writer_txt(line['Ссылка на объявление'], str(category) + '.txt', 'a')
             line.update(get_inner_content(line['Ссылка на объявление']))
             line = filling_empty_features(line)
+            if line['Район']=='нет' :
+                print('Не прошла по адресу')
+                writer_txt(line['Ссылка на объявление'],'emtyaddress.txt','a')
+                continue
             # writer_txt(line, str(category) + '.txt')
+            print('ПРоверка данных для записи: ',index,' из ',len(data))
             if check_from_writer(line):
-                print('Проверка на запись')
+                print('Прошла')
                 # writer_str_csv(line,'new_data.csv','a')
-                try:
-                    writer_db(line)
-                except Exception as e:
-                    print(e.__class__)
-                    writer_txt(':  '+e.__class__+line+'\n\n', 'log.txt', 'a')
+                # try:
+                writer_db(line)
+                # except Exception as e:
+                #     print(e.__class__)
+                #     writer_txt(e.__class__, 'log.txt', 'a')
+            else:
+                print('Строка не прошла на запись')
 
 
     else:

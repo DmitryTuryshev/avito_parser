@@ -110,7 +110,7 @@ def get_html(url, header=None, params=None):
         try:
             r=requests.get(url, headers=header, params=params)
             if r.status_code!=200:
-                print(r.status_code+str(datetime.now()))
+                print(r.status_code)
                 time.sleep(1)
                 continue
             time.sleep(1)

@@ -1,0 +1,14 @@
+[Unit]
+Description=Avito Parser
+After=network.target
+
+[Service]
+User=root
+Group=root
+
+WorkingDirectory=/home/vladimir/avito_parser/
+Environment="PYTHONPATH=/home/vladimir/avito_parser/"
+ExecStart=/home/vladimir/avito_parser/.venv/bin/python /home/vladimir/avito_parser/index.py
+
+[Install]
+WantedBy=multi-user.target

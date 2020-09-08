@@ -522,6 +522,7 @@ def parse(category):
                     print(e.__class__)
                     writer_txt(e.__class__, 'log.txt', 'a')
 
+
             time.sleep(1)
 
 

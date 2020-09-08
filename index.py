@@ -20,7 +20,7 @@ ALL_NEED_URL_FROM_CATEGORY={
     'аренда домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/sdam-ASgBAgICAUSUA9IQ',
     'продажа домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/prodam-ASgBAgICAUSUA9AQ?cd=1'
 }
-HEADERS = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:71.0) Gecko/20100101 Firefox/71.0', 'accept': '*/*'}
+HEADERS = {'user-agent': 'UserAgent().chrome'}
 
 HOST='https://www.avito.ru'
 FILE='price.csv'

@@ -15,7 +15,7 @@ def csv_dict_reader(path, delimiter=',', code='utf-8'):
   return reader
 
 if __name__ == '__main__':
-    # data=csv_dict_reader('population_data.csv')
+    data=csv_dict_reader('population_data.csv')
     # data=csv_dict_reader('unification_data.csv')
     # wall=[]
     # count=0
@@ -40,20 +40,21 @@ if __name__ == '__main__':
     #     data.append(tuple(line))
     # print(data)
     #
-    # with connection.cursor() as cursor:
-    #     query = 'SELECT * FROM district'
-    #     cursor.execute(query)
-    #     for row in cursor:
-    #         district[row[1]]=row[0]
-    # for line in data:
-    #     print(line['Регион'],'==',district[line['Регион']])
-    #     with connection.cursor() as cursor:
-    #         tweets = (line['Населёный пункт'],int(district[line['Регион']]),1,line['Население'])
-    #         query = 'INSERT INTO lacality (name,idDistrict,idRegion,population) VALUES (%s,%s,%s,%s)'
-    #         cursor.execute(query, tweets)
-    #         # необходимо, т.к. по-умолчанию commit происходит только после выхода
-    #         # из контекстного менеджера иначе мы бы не увидели твиттов
-    #         connection.commit()
+    district={}
+    with connection.cursor() as cursor:
+        query = 'SELECT * FROM district'
+        cursor.execute(query)
+        for row in cursor:
+            district[row[1]]=row[0]
+    for line in data:
+        print(line['Регион'],'==',district[line['Регион']])
+        with connection.cursor() as cursor:
+            tweets = (line['Населёный пункт'],int(district[line['Регион']]),1,line['Население'])
+            query = 'INSERT INTO lacality (name,idDistrict,idRegion,population) VALUES (%s,%s,%s,%s)'
+            cursor.execute(query, tweets)
+            # необходимо, т.к. по-умолчанию commit происходит только после выхода
+            # из контекстного менеджера иначе мы бы не увидели твиттов
+            connection.commit()
     #
     # mycursor = connection.cursor()
     #

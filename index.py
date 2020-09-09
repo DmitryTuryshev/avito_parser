@@ -5,6 +5,8 @@ import time
 from datetime import datetime
 from fake_useragent import UserAgent
 import pymysql
+from random import randint
+from time import sleep
 
 connection = pymysql.connect(
     host="localhost",
@@ -20,7 +22,8 @@ ALL_NEED_URL_FROM_CATEGORY={
     'аренда домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/sdam-ASgBAgICAUSUA9IQ',
     'продажа домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/prodam-ASgBAgICAUSUA9AQ?cd=1'
 }
-HEADERS = {'user-agent': 'UserAgent().chrome'}
+HEADERS = {'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 YaBrowser/20.7.2.115 Yowser/2.5 Safari/537.36',
+	'accept': '*/*'}
 
 HOST='https://www.avito.ru'
 FILE='price.csv'
@@ -109,17 +112,15 @@ def get_html(url, header=None, params=None):
     while True:
         try:
             r=requests.get(url, headers=header, params=params)
-            print(r.text)
-            input()
             if r.status_code!=200:
                 print(r.status_code)
-                time.sleep(1)
+                sleep(randint(2,5))
                 continue
-            time.sleep(1)
+            sleep(randint(2,5))
             return r
         except requests.exceptions.ConnectionError:
             print('Connection Error')
-        time.sleep(1)
+        sleep(randint(2,5))
 
 def get_pages_count(html):
     soup = BeautifulSoup(html, 'html.parser')
@@ -567,7 +568,7 @@ if __name__ == "__main__":
     global population
     population=csv_dict_reader('population_data.csv')
 
-    
+
     district_read_from_db = {}
     lacality_read_from_db = {}
     property_read_from_db = {}
@@ -613,4 +614,4 @@ if __name__ == "__main__":
         for category in ALL_NEED_URL_FROM_CATEGORY.keys():
             print(category.upper())
             parse(category)
-            time.sleep(1)
+            sleep(randint(2,5))

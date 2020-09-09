@@ -196,3 +196,4 @@
 <class 'pymysql.err.ProgrammingError'>
 <class 'pymysql.err.ProgrammingError'>
 <class 'pymysql.err.ProgrammingError'>
+<class 'pymysql.err.ProgrammingError'>

@@ -2,7 +2,7 @@ import requests
 import csv
 from bs4 import BeautifulSoup
 import time
-import datetime
+from datetime import datetime
 from fake_useragent import UserAgent
 import pymysql
 
@@ -283,15 +283,15 @@ def get_content(html,category,pages_count,page_count):
         except:
             online_view = 0
         features['Возможность онлайн просмотра'] = online_view
-        try:
-            date_all = item.find('div', class_='snippet-date-info').get('data-tooltip').strip().split(' ')
-            if date_all == ['']:
-                date_all = item.find('div', class_='snippet-date-info').text.strip().split(' ')
-            date =str(datetime.now().year) + '.' + str(Month[date_all[1]]) + '.' +  date_all[0]
-        except:
-            print(link)
-            input()
-            date = 'нет'
+        # try:
+        date_all = item.find('div', class_='snippet-date-info').get('data-tooltip').strip().split(' ')
+        if date_all == ['']:
+            date_all = item.find('div', class_='snippet-date-info').text.strip().split(' ')
+        date =str(datetime.now().year) + '.' + str(Month[date_all[1]]) + '.' +  date_all[0]
+        # except:
+        #     print(link)
+        #     input()
+        #     date = 'нет'
         features['Дата размещения'] = date
         try:
             price_and_rent = item.find('div', class_='snippet-price-row').text.strip().split('₽')
@@ -525,6 +525,14 @@ def parse(category):
 
         for index,line in enumerate(data):
             writer_txt(line['Ссылка на объявление'], str(category) + '.txt', 'a')
+            # mycursor = connection.cursor()
+            # sql = 'SELECT linkAd,status,idAds,price FROM avito_db.ads where linkAd= "' + line[
+            #     'Ссылка на объявление'] + '";'
+            # mycursor.execute(sql)
+            # query = mycursor.fetchall()
+            # if len(list(query)) != 0:
+            #     if list(query)[1]==1:
+            #         continue
             line.update(get_inner_content(line['Ссылка на объявление']))
             line = filling_empty_features(line)
             if line['Район']=='нет' :

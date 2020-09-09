@@ -110,6 +110,7 @@ def get_html(url, header=None, params=None):
         try:
             r=requests.get(url, headers=header, params=params)
             print(r.text)
+            input()
             if r.status_code!=200:
                 print(r.status_code)
                 time.sleep(1)

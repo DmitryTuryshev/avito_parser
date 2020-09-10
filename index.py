@@ -364,7 +364,8 @@ def get_inner_content(url):
                          'Улица': 'нет',
                          'Номер дома': 'нет'}
         print(e.__class__)
-        writer_txt(':  '+e.__class__+'\n', 'log.txt', 'a')
+        writer_txt(':  '+str(e.__class__)+'\n', 'log.txt', 'a')
+        # writer_txt('Ошибка при чтении адреса'+datetime.now(),'log.txt','a')
         address_inner='нет'
     propertys=soup.find_all('li',class_='item-params-list-item')
     features={}

@@ -18,9 +18,9 @@ connection = pymysql.connect(
     port=3306
 )
 ALL_NEED_URL_FROM_CATEGORY={
+    'аренда домов': 'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/sdam-ASgBAgICAUSUA9IQ',
     'аренда квартир':'https://www.avito.ru/amurskaya_oblast/kvartiry/sdam-ASgBAgICAUSSA8gQ?cd=1',
     'продажа квартир':'https://www.avito.ru/amurskaya_oblast/kvartiry/prodam-ASgBAgICAUSSA8YQ?cd=1',
-    'аренда домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/sdam-ASgBAgICAUSUA9IQ',
     'продажа домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/prodam-ASgBAgICAUSUA9AQ?cd=1'
 }
 HEADERS = {'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 YaBrowser/20.7.2.115 Yowser/2.5 Safari/537.36',
@@ -272,7 +272,7 @@ def get_content(html,category,pages_count,page_count):
     for index, item in enumerate(items):
         features={}
         if ((pages_count - 1) * page_count + index) >= count_ad:
-            return []
+            break
         print('Проход по объявлениям: ', index + 1, ' из ', count_ad, '(', len(items), ')')
         try:
             link = HOST + item.find('a', class_='snippet-link').get('href')
@@ -282,7 +282,7 @@ def get_content(html,category,pages_count,page_count):
         if link in last_viewed:
             global flag_break_from_url
             flag_break_from_url = True
-            return []
+            break
         try:
             title = item.find('div', class_='snippet-title-row').find('a', class_='snippet-link').text.strip()
         except:
@@ -302,8 +302,6 @@ def get_content(html,category,pages_count,page_count):
                 date_all = item.find('div', class_='snippet-date-info').text.strip().split(' ')
             date =str(datetime.now().year) + '.' + str(Month[date_all[1]]) + '.' +  date_all[0]
         except:
-            print(link)
-            input()
             date = 'нет'
         features['Дата размещения'] = date
         try:
@@ -557,6 +555,7 @@ def parse(category):
                 break
 
         if data==[]:
+            print("Зашла при пустом data листе")
             return
 
         for index,line in enumerate(data):

@@ -41,21 +41,27 @@ if __name__ == '__main__':
     # print(data)
     #
     district={}
-    with connection.cursor() as cursor:
-        query = 'SELECT * FROM district'
-        cursor.execute(query)
-        for row in cursor:
-            district[row[1]]=row[0]
-    for line in data:
-        print(line['Регион'],'==',district[line['Регион']])
-        with connection.cursor() as cursor:
-            tweets = (line['Населёный пункт'],int(district[line['Регион']]),1,line['Население'])
-            query = 'INSERT INTO lacality (name,idDistrict,idRegion,population) VALUES (%s,%s,%s,%s)'
-            cursor.execute(query, tweets)
-            # необходимо, т.к. по-умолчанию commit происходит только после выхода
-            # из контекстного менеджера иначе мы бы не увидели твиттов
-            connection.commit()
-    #
+    mycursor=connection.cursor()
+    query = 'SELECT linkAd,price FROM avito_db.ads;'
+    mycursor.execute(query)
+    q=mycursor.fetchall()
+    # print(q)
+    ads=[list(i) for i in list(q)]
+    for line in ads:
+        if 'https://www.avito.ru/amurskaya_oblast_blagoveschensk/kvartiry/studiya_30_m_19_et._2013880954' in line:
+            print('https://www.avito.ru/amurskaya_oblast_blagoveschensk/kvartiry/studiya_30_m_19_et._2013880954')
+            print(line[0])
+        #
+    # for line in data:
+    #     print(line['Регион'],'==',district[line['Регион']])
+    #     with connection.cursor() as cursor:
+    #         tweets = (line['Населёный пункт'],int(district[line['Регион']]),1,line['Население'])
+    #         query = 'INSERT INTO lacality (name,idDistrict,idRegion,population) VALUES (%s,%s,%s,%s)'
+    #         cursor.execute(query, tweets)
+    #         # необходимо, т.к. по-умолчанию commit происходит только после выхода
+    #         # из контекстного менеджера иначе мы бы не увидели твиттов
+    #         connection.commit()
+    # #
     # mycursor = connection.cursor()
     #
     # sql = "INSERT INTO kindofpropertys (name) VALUES (%s)"
@@ -84,7 +90,7 @@ if __name__ == '__main__':
     # mycursor.executemany(sql, val)
     #
     # connection.commit()
-    mycursor = connection.cursor()
+    # mycursor = connection.cursor()
 
     # sql = "INSERT INTO species (name) VALUES (%s)"
     # val = [
@@ -95,14 +101,14 @@ if __name__ == '__main__':
 
     # mycursor.executemany(sql, val)
 
-    sql='SELECT linkAd,status FROM avito_db.ads where linkAd= "https://www.avito.ru/amurskaya_oblast_blagoveschensk/kvartiry/studiya_28_m_34_et._1614484393";'
-    mycursor.execute(sql)
-    ans = list(mycursor.fetchall()[0])
-    print(ans)
-    if ans:
-        print(ans[1])
-        if ans[1]==0:
-            print('Status 0')
-        print('dd')
-    connection.commit()
+    # sql='SELECT linkAd,status FROM avito_db.ads where linkAd= "https://www.avito.ru/amurskaya_oblast_blagoveschensk/kvartiry/studiya_28_m_34_et._1614484393";'
+    # mycursor.execute(sql)
+    # ans = list(mycursor.fetchall()[0])
+    # print(ans)
+    # if ans:
+    #     print(ans[1])
+    #     if ans[1]==0:
+    #         print('Status 0')
+    #     print('dd')
+    # connection.commit()
     connection.close()

@@ -18,9 +18,9 @@ connection = pymysql.connect(
     port=3306
 )
 ALL_NEED_URL_FROM_CATEGORY={
+    'продажа квартир':'https://www.avito.ru/amurskaya_oblast/kvartiry/prodam-ASgBAgICAUSSA8YQ?cd=1',
     'аренда домов': 'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/sdam-ASgBAgICAUSUA9IQ',
     'аренда квартир':'https://www.avito.ru/amurskaya_oblast/kvartiry/sdam-ASgBAgICAUSSA8gQ?cd=1',
-    'продажа квартир':'https://www.avito.ru/amurskaya_oblast/kvartiry/prodam-ASgBAgICAUSSA8YQ?cd=1',
     'продажа домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/prodam-ASgBAgICAUSUA9AQ?cd=1'
 }
 HEADERS = {'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 YaBrowser/20.7.2.115 Yowser/2.5 Safari/537.36',
@@ -274,7 +274,9 @@ def get_content(html,pages_count,page_count,category=''):
     data=[]
     for index, item in enumerate(items):
         features={}
-        if ((pages_count - 1) * page_count + index) >= count_ad:
+        if pages_count==page_count and ((pages_count - 1) * 50 + index) >= count_ad:
+        # if ((pages_count - 1) * page_count + index) >= count_ad:
+            print('Проверка на количество страниц сраотатла')
             break
         print('Проход по объявлениям: ', index + 1, ' из ', count_ad, '(', len(items), ')')
         try:
@@ -609,10 +611,10 @@ def check_status_ads():
         data=[]
         if html.status_code==200:
             pages_count=get_pages_count(html.text)
-            # pages_count=5
+            pages_count=1
             for page in range(1,pages_count+1):
                 print(f'Парсинг страницы {page} из {pages_count}')
-                html=get_html(url, params={'p':page})
+                html = get_html(url, params={'p': page})
                 data+=get_content(html.text,pages_count,page)
                 if  flag_break_from_url:
                     break
@@ -626,7 +628,8 @@ def check_status_ads():
     for ad in ads:
         flag_status_ad=False
         for line in data:
-            if ad[0] == line['Ссылка на объявление']:
+            if ad[0] in line['Ссылка на объявление']:
+                print('ПРоверка сработала на наличие в найденом списке')
                 flag_status_ad=True
                 data.remove(line)
                 break
@@ -719,7 +722,7 @@ if __name__ == "__main__":
     flag_check_all_close_ads=True
     while True:
 
-        if True or (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,18,1,1).time()> datetime.now().time()))):
+        if (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
             flag_check_all_close_ads=False
@@ -729,6 +732,7 @@ if __name__ == "__main__":
             print(category.upper())
             parse(category)
             sleep(randint(2,5))
+        sleep(25)
 
 
 

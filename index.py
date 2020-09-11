@@ -115,13 +115,13 @@ def get_html(url, header=None, params=None):
             r=requests.get(url, headers=header, params=params)
             if r.status_code!=200:
                 print(r.status_code)
-                sleep(randint(2,5))
+                sleep(randint(3,6))
                 continue
-            sleep(randint(2,5))
+            sleep(randint(3,6))
             return r
         except requests.exceptions.ConnectionError:
             print('Connection Error')
-        sleep(randint(2,5))
+        sleep(randint(3,6))
 
 def get_pages_count(html):
     soup = BeautifulSoup(html, 'html.parser')
@@ -732,7 +732,7 @@ if __name__ == "__main__":
             print(category.upper())
             parse(category)
             sleep(randint(2,5))
-        sleep(25)
+        sleep(60)
 
 
 

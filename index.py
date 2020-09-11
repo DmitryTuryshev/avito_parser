@@ -596,6 +596,72 @@ def parse(category):
     else:
         print('Не удалось получить html')
 
+def check_status_ads():
+    # data=[]
+    global flag_break_from_url
+    for category in ALL_NEED_URL_FROM_CATEGORY.keys():
+        flag_break_from_url = False
+        url=ALL_NEED_URL_FROM_CATEGORY[category]
+        html=get_html(url)
+        data=[]
+        if html.status_code==200:
+            pages_count=get_pages_count(html.text)
+            # pages_count=5
+            for page in range(1,pages_count+1):
+                print(f'Парсинг страницы {page} из {pages_count}')
+                html=get_html(url, params={'p':page})
+                data+=get_content(html.text,category,pages_count,page)
+                if  flag_break_from_url:
+                    break
+        else:
+            print('Не удалось получить html')
+    mycursor = connection.cursor()
+    sql='SELECT linkAd,price,status FROM avito_db.ads;'
+    mycursor.execute(sql)
+    ads_query=mycursor.fetchall()
+    ads=[ list(i) for i in ads_query]
+    for ad in ads:
+        flag_status_ad=False
+        for line in data:
+            if ad[0] == line['Ссылка на объявление']:
+                flag_status_ad=True
+                data.remove(line)
+                break
+        if not flag_status_ad:
+            sql="update ads set status=0 where linkAd='"+ad[0]+"'"
+            try:
+                mycursor.execute(sql)
+            except:
+                print('Ошибка при обновлении статуса в объявления')
+                writer_txt('Ошибка при обновлении статуса в объявления'+str(datetime.now()),'log.txt','a')
+    if data==[]:
+        return
+    for index, line in enumerate(data):
+        if check_from_verified_ad(line) == False:
+            print('Проверка на уникальность')
+            continue
+
+        line.update(get_inner_content(line['Ссылка на объявление']))
+        line = filling_empty_features(line)
+        if line['Район'] == 'нет':
+            print('Не прошла по адресу')
+            print(line)
+            writer_txt(line['Ссылка на объявление'], 'emtyaddress.txt', 'a')
+            continue
+        # writer_txt(line, str(category) + '.txt')
+        print('ПРоверка данных для записи: ', index, ' из ', len(data))
+        if check_from_writer(line):
+            print('Прошла')
+            # writer_str_csv(line,'new_data.csv','a')
+            # try:
+            writer_db(line)
+            continue
+            # except Exception as e:
+            #     print(e.__class__)
+            #     writer_txt(e.__class__, 'log.txt', 'a')
+        print('Строка не прошла на запись')
+
+
 if __name__ == "__main__":
     global district_read_from_db
     global property_read_from_db
@@ -647,8 +713,19 @@ if __name__ == "__main__":
     except:
         print('Неудача при чтении первых свойств')
         input()
+    flag_check_all_close_ads=True
     while True:
+
+        if flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time())):
+            print('Проверка статусов ')
+            check_status_ads()
+            flag_check_all_close_ads=False
+        if not flag_check_all_close_ads and ((datetime(1,1,1,2,1,1).time()<datetime.now().time() and datetime(1,1,1,13,1,1).time()>datetime.now().time()) or datetime(1,1,1,15,1,1).time() < datetime.now().time()):
+            flag_check_all_close_ads=True
         for category in ALL_NEED_URL_FROM_CATEGORY.keys():
             print(category.upper())
             parse(category)
             sleep(randint(2,5))
+
+
+

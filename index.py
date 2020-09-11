@@ -263,11 +263,14 @@ def filling_empty_features(features):
             features[need_feature]='нет'
     return features
 
-def get_content(html,category,pages_count,page_count):
+def get_content(html,pages_count,page_count,category=''):
     soup = BeautifulSoup(html, 'html.parser')
     items = soup.find_all('div', class_='item_table-wrapper')
     count_ad = int(soup.find('span', class_='page-title-count-1oJOc').text.replace(' ', ''))
-    last_viewed=read_from_txt(str(category)+'.txt')
+    if category=='':
+        last_viewed=[]
+    else:
+        last_viewed=read_from_txt(str(category)+'.txt')
     data=[]
     for index, item in enumerate(items):
         features={}
@@ -550,7 +553,7 @@ def parse(category):
         for page in range(1,pages_count+1):
             print(f'Парсинг страницы {page} из {pages_count}')
             html=get_html(url, params={'p':page})
-            data+=get_content(html.text,category,pages_count,page)
+            data+=get_content(html.text,pages_count,page,category)
             if  flag_break_from_url:
                 break
 
@@ -610,7 +613,7 @@ def check_status_ads():
             for page in range(1,pages_count+1):
                 print(f'Парсинг страницы {page} из {pages_count}')
                 html=get_html(url, params={'p':page})
-                data+=get_content(html.text,category,pages_count,page)
+                data+=get_content(html.text,pages_count,page)
                 if  flag_break_from_url:
                     break
         else:
@@ -720,7 +723,7 @@ if __name__ == "__main__":
             print('Проверка статусов ')
             check_status_ads()
             flag_check_all_close_ads=False
-        if not flag_check_all_close_ads and ((datetime(1,1,1,2,1,1).time()<datetime.now().time() and datetime(1,1,1,13,1,1).time()>datetime.now().time()) or datetime(1,1,1,18,1,1).time() < datetime.now().time()):
+        if True or (not flag_check_all_close_ads and ((datetime(1,1,1,2,1,1).time()<datetime.now().time() and datetime(1,1,1,13,1,1).time()>datetime.now().time()) or datetime(1,1,1,15,1,1).time() < datetime.now().time())):
             flag_check_all_close_ads=True
         for category in ALL_NEED_URL_FROM_CATEGORY.keys():
             print(category.upper())

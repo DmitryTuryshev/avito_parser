@@ -550,7 +550,12 @@ def parse(category):
     html=get_html(url)
     data=[]
     if html.status_code==200:
-        pages_count=get_pages_count(html.text)
+        try:
+            pages_count=get_pages_count(html.text)
+        except:
+            print('Ошибка при получении страниц')
+            pages_count=1
+
         # pages_count=5
         for page in range(1,pages_count+1):
             print(f'Парсинг страницы {page} из {pages_count}')
@@ -610,7 +615,11 @@ def check_status_ads():
         html=get_html(url)
         data=[]
         if html.status_code==200:
-            pages_count=get_pages_count(html.text)
+            try:
+                pages_count = get_pages_count(html.text)
+            except:
+                print('Ошибка при получении страниц')
+                pages_count = 1
             # pages_count=1
             for page in range(1,pages_count+1):
                 print(f'Парсинг страницы {page} из {pages_count}')
@@ -625,14 +634,16 @@ def check_status_ads():
     mycursor.execute(sql)
     ads_query=mycursor.fetchall()
     ads=[ list(i) for i in ads_query]
+    data_clear=[]
     for ad in ads:
         flag_status_ad=False
         for line in data:
-            if ad[0] in line['Ссылка на объявление']:
+            if line['Ссылка на объявление'] in ad[0] and ad[2]==0:
                 print('ПРоверка сработала на наличие в найденом списке')
                 flag_status_ad=True
-                data.remove(line)
                 break
+            else:
+                data_clear.append(line)
         if not flag_status_ad:
             sql="update ads set status=0 where linkAd='"+ad[0]+"'"
             print('Запись на обновление')
@@ -644,9 +655,9 @@ def check_status_ads():
             finally:
                 ads.remove(ad)
                 print('Произошло обновление')
-    if data==[]:
+    if data_clear==[]:
         return
-    for index, line in enumerate(data):
+    for index, line in enumerate(data_clear):
         if check_from_verified_ad(line) == False:
             print('Проверка на уникальность')
             continue
@@ -726,7 +737,7 @@ if __name__ == "__main__":
     flag_check_all_close_ads=True
     while True:
 
-        if True or (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
+        if (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
             flag_check_all_close_ads=False

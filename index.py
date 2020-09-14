@@ -635,11 +635,15 @@ def check_status_ads():
                 break
         if not flag_status_ad:
             sql="update ads set status=0 where linkAd='"+ad[0]+"'"
+            print('Запись на обновление')
             try:
                 mycursor.execute(sql)
             except:
                 print('Ошибка при обновлении статуса в объявления')
                 writer_txt('Ошибка при обновлении статуса в объявления'+str(datetime.now()),'log.txt','a')
+            finally:
+                ads.remove(ad)
+                print('Произошло обновление')
     if data==[]:
         return
     for index, line in enumerate(data):

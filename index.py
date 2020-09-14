@@ -611,7 +611,7 @@ def check_status_ads():
         data=[]
         if html.status_code==200:
             pages_count=get_pages_count(html.text)
-            pages_count=1
+            # pages_count=1
             for page in range(1,pages_count+1):
                 print(f'Парсинг страницы {page} из {pages_count}')
                 html = get_html(url, params={'p': page})

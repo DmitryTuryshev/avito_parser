@@ -622,7 +622,7 @@ def check_status_ads():
                 pages_count = 1
             # pages_count=1
             for page in range(1,pages_count+1):
-                print(f'Парсинг страницы {page} из {pages_count}')
+                print(f'Проверка статусов: страница {page} из {pages_count}')
                 html = get_html(url, params={'p': page})
                 data+=get_content(html.text,pages_count,page)
                 if  flag_break_from_url:
@@ -681,7 +681,7 @@ def check_status_ads():
             #     print(e.__class__)
             #     writer_txt(e.__class__, 'log.txt', 'a')
         print('Строка не прошла на запись')
-    return 
+    return
 
 if __name__ == "__main__":
     global district_read_from_db

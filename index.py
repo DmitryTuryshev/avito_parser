@@ -681,7 +681,7 @@ def check_status_ads():
             #     print(e.__class__)
             #     writer_txt(e.__class__, 'log.txt', 'a')
         print('Строка не прошла на запись')
-
+    return 
 
 if __name__ == "__main__":
     global district_read_from_db

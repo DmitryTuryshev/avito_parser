@@ -659,7 +659,7 @@ def check_status_ads():
         return
     for index, line in enumerate(data_clear):
         if check_from_verified_ad(line) == False:
-            print('Проверка на уникальность')
+            print('Проверка на уникальность(статус)')
             continue
 
         line.update(get_inner_content(line['Ссылка на объявление']))
@@ -740,6 +740,7 @@ if __name__ == "__main__":
         if True or (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
+            input()
             flag_check_all_close_ads=False
         if not flag_check_all_close_ads and ((datetime(1,1,1,2,1,1).time()<datetime.now().time() and datetime(1,1,1,13,1,1).time()>datetime.now().time()) or datetime(1,1,1,15,1,1).time() < datetime.now().time()):
             flag_check_all_close_ads=True

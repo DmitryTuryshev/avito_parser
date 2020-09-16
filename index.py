@@ -674,7 +674,7 @@ def check_status_ads():
             writer_txt(line['Ссылка на объявление'], 'emtyaddress.txt', 'a')
             continue
         # writer_txt(line, str(category) + '.txt')
-        print('Проверка данных для записи (статус): ', index, ' из ', len(data))
+        print('Проверка данных для записи (статус): ', index, ' из ', len(data_clear))
         if check_from_writer(line):
             print('Прошла')
             # writer_str_csv(line,'new_data.csv','a')

@@ -670,7 +670,7 @@ def check_status_ads():
             writer_txt(line['Ссылка на объявление'], 'emtyaddress.txt', 'a')
             continue
         # writer_txt(line, str(category) + '.txt')
-        print('ПРоверка данных для записи: ', index, ' из ', len(data))
+        print('Проверка данных для записи (статус): ', index, ' из ', len(data))
         if check_from_writer(line):
             print('Прошла')
             # writer_str_csv(line,'new_data.csv','a')
@@ -737,7 +737,7 @@ if __name__ == "__main__":
     flag_check_all_close_ads=True
     while True:
 
-        if (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
+        if True or (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
             flag_check_all_close_ads=False

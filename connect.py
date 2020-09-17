@@ -47,10 +47,14 @@ if __name__ == '__main__':
     q=mycursor.fetchall()
     # print(q)
     ads=[list(i) for i in list(q)]
+    data_clear_list=[]
     for line in ads:
-        if 'https://www.avito.ru/amurskaya_oblast_blagoveschensk/kvartiry/studiya_30_m_19_et._2013880954' in line:
-            print('https://www.avito.ru/amurskaya_oblast_blagoveschensk/kvartiry/studiya_30_m_19_et._2013880954')
-            print(line[0])
+        if line in ads:
+            # print('del')
+            continue
+        else:
+            data_clear_list.append(line)
+            print('not')
         #
     # for line in data:
     #     print(line['Регион'],'==',district[line['Регион']])

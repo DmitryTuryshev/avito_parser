@@ -543,8 +543,9 @@ def writer_db(line,fieldnames=[],values=[],table="ads"):
         for value in values:
             sql+=","+"'"+str(value)+"'"
         sql+=");"
-        print(sql)
         mycursor.execute(sql)
+        print('Строка записанна')
+
         connection.commit()
     except:
         writer_txt(sql,'write_bag.txt','a')

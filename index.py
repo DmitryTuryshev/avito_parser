@@ -18,9 +18,10 @@ connection = pymysql.connect(
     port=3306
 )
 ALL_NEED_URL_FROM_CATEGORY={
+    'аренда домов': 'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/sdam-ASgBAgICAUSUA9IQ',
+
     'аренда квартир': 'https://www.avito.ru/amurskaya_oblast/kvartiry/sdam-ASgBAgICAUSSA8gQ?cd=1',
 
-    'аренда домов': 'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/sdam-ASgBAgICAUSUA9IQ',
     'продажа квартир': 'https://www.avito.ru/amurskaya_oblast/kvartiry/prodam-ASgBAgICAUSSA8YQ?cd=1',
     'продажа домов':'https://www.avito.ru/amurskaya_oblast/doma_dachi_kottedzhi/prodam-ASgBAgICAUSUA9AQ?cd=1'
 }
@@ -525,10 +526,17 @@ def writer_db(line,fieldnames=[],values=[],table="ads"):
         #     line['Пункт населения(Город, село и т.д.)']=line['Пункт населения(Город, село и т.д.)'].replace('г.','г. ')
         get_id_of_lacality='SELECT idlacality FROM avito_db.lacality inner join district on (lacality.idDistrict=district.idDistrict) inner join regions on (lacality.idRegion=regions.idRegion) where lacality.name="'+line['Пункт населения(Город, село и т.д.)']+'" and district.name = "'+line['Район']+'";'
         # print(get_id_of_lacality)
-        list_of_lacality=mycursor.execute(get_id_of_lacality)
-        # print(list_of_lacality)
-        for x in list_of_lacality:
-            id_of_lacality=x
+        mycursor.execute(get_id_of_lacality)
+        list_of_lacality=list(mycursor.fetchall())
+        # print('list: ',list_of_lacality)
+        # for x in list_of_lacality:
+        try:
+            id_of_lacality=list(list_of_lacality[0])[0]
+            # print('id: ', id_of_lacality)
+
+        except:
+            id_of_lacality=list_of_lacality
+            print('Ошибка при получении id')
         sql+=","+"'"+str(id_of_lacality)+"'"
         print(id_of_lacality)
         sql+=","+"'"+str(material_read_from_db[line["Материал стен"]])+"'"
@@ -542,7 +550,7 @@ def writer_db(line,fieldnames=[],values=[],table="ads"):
         writer_txt(sql,'write_bag.txt','a')
         writer_txt(line,'write_bag.txt','a')
         writer_txt(datetime.now(),'write_bag.txt','a')
-        print(sql)
+        print("Ошибка при записи в бд: ", sql)
 
 def parse(category):
     # data=[]
@@ -573,7 +581,9 @@ def parse(category):
             return
 
         for index,line in enumerate(data):
+
             writer_txt(line['Ссылка на объявление'], str(category) + '.txt', 'a')
+
             # mycursor = connection.cursor()
             # sql = 'SELECT linkAd,status,idAds,price FROM avito_db.ads where linkAd= "' + line[
             #     'Ссылка на объявление'] + '";'
@@ -741,7 +751,7 @@ if __name__ == "__main__":
     flag_check_all_close_ads=True
     while True:
 
-        if False or (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
+        if False and (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
             input()

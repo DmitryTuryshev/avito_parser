@@ -268,7 +268,11 @@ def filling_empty_features(features):
 def get_content(html,pages_count,page_count,category=''):
     soup = BeautifulSoup(html, 'html.parser')
     items = soup.find_all('div', class_='item_table-wrapper')
-    count_ad = int(soup.find('span', class_='page-title-count-1oJOc').text.replace(' ', ''))
+    try:
+        count_ad = int(soup.find('span', class_='page-title-count-1oJOc').text.replace(' ', ''))
+    except:
+        print('Ошибка при получение количество объявлений на странице')
+        return []
     if category=='':
         last_viewed=[]
     else:
@@ -538,7 +542,7 @@ def writer_db(line,fieldnames=[],values=[],table="ads"):
             id_of_lacality=list_of_lacality
             print('Ошибка при получении id')
         sql+=","+"'"+str(id_of_lacality)+"'"
-        print(id_of_lacality)
+        # print(id_of_lacality)
         sql+=","+"'"+str(material_read_from_db[line["Материал стен"]])+"'"
         for value in values:
             sql+=","+"'"+str(value)+"'"

@@ -650,6 +650,7 @@ def check_status_ads():
                     break
         else:
             print('Не удалось получить html')
+        sleep(60)
     mycursor = connection.cursor()
     sql='SELECT linkAd,price,status FROM avito_db.ads where status=1;'
     mycursor.execute(sql)

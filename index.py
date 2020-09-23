@@ -418,10 +418,11 @@ def check_from_verified_ad(curret_ad):
         writer_txt('Ошибка: проверку на наличие в таблице ад','log.txt','a')
         writer_txt('Ошибка: проверку на наличие в таблице ад - ' + str(datetime.now()) + ' - ' + curret_ad[
             'Ссылка на объявление'], 'log.txt', 'a')
-
         writer_txt(e.__class__, 'log.txt', 'a')
         return False
+
     status_of_original=1
+
     if len(list(query)) != 0:
         ans = list(query[0])
         status_of_original = ans[1]
@@ -440,6 +441,7 @@ def check_from_verified_ad(curret_ad):
                     writer_txt(e.__class__, 'log.txt', 'a')
                     return False
             return False
+
     sql = 'SELECT linkAd,status,idAds,price FROM avito_db.adsbanned where linkAd= "' + curret_ad[
         'Ссылка на объявление'] + '";'
     try:
@@ -452,7 +454,7 @@ def check_from_verified_ad(curret_ad):
                     sql = "UPDATE `ads` set `status`='1',`price`='" + str(curret_ad['Цена']) + "' WHERE (`idAds` = '" + str(ans[2]) + "');"
                     mycursor.execute(sql)
                     return False
-                return False
+            return False
     except Exception as e:
         print(e.__class__)
         writer_txt(e.__class__, 'log.txt', 'a')
@@ -649,7 +651,7 @@ def check_status_ads():
         else:
             print('Не удалось получить html')
     mycursor = connection.cursor()
-    sql='SELECT linkAd,price,status FROM avito_db.ads;'
+    sql='SELECT linkAd,price,status FROM avito_db.ads where status=1;'
     mycursor.execute(sql)
     ads_query=mycursor.fetchall()
     ads=[ list(i) for i in ads_query]
@@ -657,30 +659,25 @@ def check_status_ads():
     for ad in ads:
         flag_status_ad=False
         for line in data:
-            if line['Ссылка на объявление'] in ad[0] and ad[2]==0:
+            if line['Ссылка на объявление'] in ad[0]:
                 print('ПРоверка сработала на наличие в найденом списке')
                 flag_status_ad=True
                 break
-            else:
-                data_clear.append(line)
         if not flag_status_ad:
             sql="update ads set status=0 where linkAd='"+ad[0]+"'"
             print('Запись на обновление')
             try:
                 mycursor.execute(sql)
+                print('Произошло обновление')
             except:
                 print('Ошибка при обновлении статуса в объявления')
                 writer_txt('Ошибка при обновлении статуса в объявления'+str(datetime.now()),'log.txt','a')
-            finally:
-                ads.remove(ad)
-                print('Произошло обновление')
-    if data_clear==[]:
-        return
+
+    data_clear=data
     for index, line in enumerate(data_clear):
         if check_from_verified_ad(line) == False:
             print('Проверка на уникальность(статус)')
             continue
-
         line.update(get_inner_content(line['Ссылка на объявление']))
         line = filling_empty_features(line)
         if line['Район'] == 'нет':
@@ -756,7 +753,7 @@ if __name__ == "__main__":
     flag_check_all_close_ads=True
     while True:
 
-        if False and (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
+        if True or (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
             input()

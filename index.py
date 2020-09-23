@@ -640,8 +640,8 @@ def check_status_ads():
                 pages_count = get_pages_count(html.text)
             except:
                 print('Ошибка при получении страниц')
-                pages_count = 1
-            # pages_count=1
+                # pages_count = 1
+            pages_count=1
             for page in range(1,pages_count+1):
                 print(f'Проверка статусов: страница {page} из {pages_count}')
                 html = get_html(url, params={'p': page})
@@ -659,7 +659,9 @@ def check_status_ads():
     data_clear=[]
     for ad in ads:
         flag_status_ad=False
+        # print(ad[0])
         for line in data:
+            # print(line['Ссылка на объявление'])
             if line['Ссылка на объявление'] in ad[0]:
                 print('ПРоверка сработала на наличие в найденом списке')
                 flag_status_ad=True
@@ -689,7 +691,7 @@ def check_status_ads():
         # writer_txt(line, str(category) + '.txt')
         print('Проверка данных для записи (статус): ', index, ' из ', len(data_clear))
         if check_from_writer(line):
-            print('Прошла')
+            # print('Прошла')
             # writer_str_csv(line,'new_data.csv','a')
             # try:
             writer_db(line)
@@ -754,7 +756,7 @@ if __name__ == "__main__":
     flag_check_all_close_ads=True
     while True:
 
-        if True or (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
+        if (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
             input()

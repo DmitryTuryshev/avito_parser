@@ -641,7 +641,7 @@ def check_status_ads():
             except:
                 print('Ошибка при получении страниц')
                 # pages_count = 1
-            pages_count=1
+            # pages_count=1
             for page in range(1,pages_count+1):
                 print(f'Проверка статусов: страница {page} из {pages_count}')
                 html = get_html(url, params={'p': page})
@@ -650,13 +650,15 @@ def check_status_ads():
                     break
         else:
             print('Не удалось получить html')
-        sleep(60)
+        sleep(30)
     mycursor = connection.cursor()
-    sql='SELECT linkAd,price,status FROM avito_db.ads where status=1;'
+    sql='SELECT linkAd,price,status FROM avito_db.ads;'
     mycursor.execute(sql)
     ads_query=mycursor.fetchall()
     ads=[ list(i) for i in ads_query]
     data_clear=[]
+    count_enters=0
+    count_write=0
     for ad in ads:
         flag_status_ad=False
         # print(ad[0])
@@ -665,41 +667,40 @@ def check_status_ads():
             if line['Ссылка на объявление'] in ad[0]:
                 print('ПРоверка сработала на наличие в найденом списке')
                 flag_status_ad=True
+                count_enters+=1
                 break
         if not flag_status_ad:
             sql="update ads set status=0 where linkAd='"+ad[0]+"'"
-            print('Запись на обновление')
+            # print('Запись на обновление')
             try:
                 mycursor.execute(sql)
                 print('Произошло обновление')
+                count_write+=1
             except:
                 print('Ошибка при обновлении статуса в объявления')
                 writer_txt('Ошибка при обновлении статуса в объявления'+str(datetime.now()),'log.txt','a')
-
-    data_clear=data
-    for index, line in enumerate(data_clear):
-        if check_from_verified_ad(line) == False:
-            print('Проверка на уникальность(статус)')
-            continue
-        line.update(get_inner_content(line['Ссылка на объявление']))
-        line = filling_empty_features(line)
-        if line['Район'] == 'нет':
-            print('Не прошла по адресу')
-            print(line)
-            writer_txt(line['Ссылка на объявление'], 'emtyaddress.txt', 'a')
-            continue
-        # writer_txt(line, str(category) + '.txt')
-        print('Проверка данных для записи (статус): ', index, ' из ', len(data_clear))
-        if check_from_writer(line):
-            # print('Прошла')
-            # writer_str_csv(line,'new_data.csv','a')
-            # try:
-            writer_db(line)
-            continue
-            # except Exception as e:
-            #     print(e.__class__)
-            #     writer_txt(e.__class__, 'log.txt', 'a')
-        print('Строка не прошла на запись')
+    print('Всего объявлений в data листе: ', len(data))
+    print('Всего объявление в бд(ads): ', len(ads))
+    print('Количество сработанных проверок, на наличие в найленом списке: ',count_enters)
+    print('Количество на запись: ', count_write)
+    input()
+    # data_clear=data
+    # for index, line in enumerate(data_clear):
+    #     if check_from_verified_ad(line) == False:
+    #         print('Проверка на уникальность(статус)')
+    #         continue
+    #     line.update(get_inner_content(line['Ссылка на объявление']))
+    #     line = filling_empty_features(line)
+    #     if line['Район'] == 'нет':
+    #         print('Не прошла по адресу')
+    #         print(line)
+    #         writer_txt(line['Ссылка на объявление'], 'emtyaddress.txt', 'a')
+    #         continue
+    #     print('Проверка данных для записи (статус): ', index, ' из ', len(data_clear))
+    #     if check_from_writer(line):
+    #         writer_db(line)
+    #         continue
+    #     print('Строка не прошла на запись')
     return
 
 if __name__ == "__main__":
@@ -752,11 +753,10 @@ if __name__ == "__main__":
                 species_read_from_db[row[1]] = row[0]
     except:
         print('Неудача при чтении первых свойств')
-        input()
     flag_check_all_close_ads=True
     while True:
 
-        if (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
+        if True or (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
             input()

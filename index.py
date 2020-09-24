@@ -683,24 +683,23 @@ def check_status_ads():
     print('Всего объявление в бд(ads): ', len(ads))
     print('Количество сработанных проверок, на наличие в найленом списке: ',count_enters)
     print('Количество на запись: ', count_write)
-    input()
-    # data_clear=data
-    # for index, line in enumerate(data_clear):
-    #     if check_from_verified_ad(line) == False:
-    #         print('Проверка на уникальность(статус)')
-    #         continue
-    #     line.update(get_inner_content(line['Ссылка на объявление']))
-    #     line = filling_empty_features(line)
-    #     if line['Район'] == 'нет':
-    #         print('Не прошла по адресу')
-    #         print(line)
-    #         writer_txt(line['Ссылка на объявление'], 'emtyaddress.txt', 'a')
-    #         continue
-    #     print('Проверка данных для записи (статус): ', index, ' из ', len(data_clear))
-    #     if check_from_writer(line):
-    #         writer_db(line)
-    #         continue
-    #     print('Строка не прошла на запись')
+    data_clear=data
+    for index, line in enumerate(data_clear):
+        if check_from_verified_ad(line) == False:
+            print('Проверка на уникальность(статус)')
+            continue
+        line.update(get_inner_content(line['Ссылка на объявление']))
+        line = filling_empty_features(line)
+        if line['Район'] == 'нет':
+            print('Не прошла по адресу')
+            print(line)
+            writer_txt(line['Ссылка на объявление'], 'emtyaddress.txt', 'a')
+            continue
+        print('Проверка данных для записи (статус): ', index, ' из ', len(data_clear))
+        if check_from_writer(line):
+            writer_db(line)
+            continue
+        print('Строка не прошла на запись')
     return
 
 if __name__ == "__main__":
@@ -756,7 +755,7 @@ if __name__ == "__main__":
     flag_check_all_close_ads=True
     while True:
 
-        if True or (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
+        if (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
             input()

@@ -630,11 +630,11 @@ def parse(category):
 def check_status_ads():
     # data=[]
     global flag_break_from_url
+    data = []
     for category in ALL_NEED_URL_FROM_CATEGORY.keys():
         flag_break_from_url = False
         url=ALL_NEED_URL_FROM_CATEGORY[category]
         html=get_html(url)
-        data=[]
         if html.status_code==200:
             try:
                 pages_count = get_pages_count(html.text)

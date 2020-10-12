@@ -488,8 +488,8 @@ def check_from_writer(curret_ad):
 
 def writer_db(line,fieldnames=[],values=[],table="ads"):
     try:
-        global district_read_from_db
-        global lacality_read_from_db
+        # global district_read_from_db
+        # global lacality_read_from_db
         mycursor = connection.cursor()
 
         sql = "INSERT INTO "+table+" (`name`,`price`,`addressFull`,`primary`,`date`,`linkAd`,`views`,`idAdInSite`,`seller`,`linkSeller`,`floor`,`numberOfFloors`,`numberOfRooms`,`livingSpace`,`totalArea`,`kithenArea`,`yearOfConstruction`,`finishing`,`developer`,`nameOfTheNewBulding`,`thePlots`,`distanseToCity`,`online`,`ownership`,`idKindOfProperty`,`species_idSpecie`,`lacality_idlacality`,`idMaterial`"
@@ -524,10 +524,10 @@ def writer_db(line,fieldnames=[],values=[],table="ads"):
         sql+=","+"'"+(line['Право собственности'])+"'"
         sql+=","+"'"+str(property_read_from_db[line['Вид объекта'].lower()])+"'"
         sql+=","+"'"+str(species_read_from_db[line['Вид']])+"'"
-        try:
-            line['Пункт населения(Город, село и т.д.)']
-        except:
-            print(line)
+        # try:
+        #     line['Пункт населения(Город, село и т.д.)']
+        # except:
+        #     print(line)
         # if 'г.' in line['Пункт населения(Город, село и т.д.)'] and not 'г. ' in line['Пункт населения(Город, село и т.д.)']:
         #     line['Пункт населения(Город, село и т.д.)']=line['Пункт населения(Город, село и т.д.)'].replace('г.','г. ')
         get_id_of_lacality='SELECT idlacality FROM avito_db.lacality inner join district on (lacality.idDistrict=district.idDistrict) inner join regions on (lacality.idRegion=regions.idRegion) where lacality.name="'+line['Пункт населения(Город, село и т.д.)']+'" and district.name = "'+line['Район']+'";'
@@ -755,7 +755,7 @@ if __name__ == "__main__":
     flag_check_all_close_ads=True
     while True:
 
-        if (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
+        if False and (flag_check_all_close_ads and (datetime(1,1,1,1,1,1).time()>datetime.now().time() or (datetime(1,1,1,13,1,1).time()< datetime.now().time() and datetime(1,1,1,15,1,1).time()> datetime.now().time()))):
             print('Проверка статусов ')
             check_status_ads()
             flag_check_all_close_ads=False
